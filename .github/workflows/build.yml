@@ -39,6 +39,7 @@ jobs:
           mkdir package/fastboot
           cp -r ../adbMakefile package/fastboot
           cp -r ../Makefile package/fastboot
+          cp -r ../.config package/
 
       - name: build
         run: |

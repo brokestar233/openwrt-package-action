@@ -40,13 +40,14 @@ jobs:
           cp -r ../adbMakefile package/fastboot
           cp -r ../Makefile package/fastboot
           cp -r ../.config package/
-# make package/ipt2socks/compile V=s
+
       - name: build
         run: |
           cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
           ./scripts/feeds update -a
           ./scripts/feeds install libopenssl
           make oldconfig V=s
+          make package/ipt2socks/compile V=s
 
       - name: Upload IPK
         uses: softprops/action-gh-release@v2

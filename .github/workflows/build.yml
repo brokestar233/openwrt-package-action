@@ -70,10 +70,10 @@ jobs:
           make oldconfig V=s
           make V=s
 
-      - name: Upload IPK
+      - name: Upload APK
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 114514
-          files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin
+          tag_name: ${{ env.TAG_NAME }}
+          files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/*.ipk

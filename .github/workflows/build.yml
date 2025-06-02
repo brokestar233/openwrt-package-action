@@ -69,11 +69,12 @@ jobs:
           ./staging_dir/host/bin/usign -G -s ./key-build -p ./key-build.pub -c "Local build key"
           make oldconfig V=s CC="ccache gcc" CXX="ccache g++"
           make V=s CC="ccache gcc" CXX="ccache g++"
+          zip -r IPK.zip openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/targets/x86/64/packages/
 
-      - name: Upload APK
+      - name: Upload IPK
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: 1
-          files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/targets/x86/64/packages/*.ipk
+          files: IPK.zip

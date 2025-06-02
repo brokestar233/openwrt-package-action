@@ -191,4 +191,89 @@ FASTBOOT_STATIC_LIBS := \
     -lbase \
     -lcutils \
     -lgtest_host \
-    -ll
+    -llp \
+    -lcrypto \
+    -lbuildversion \
+    -lext4_utils \
+    -lselinux
+
+# Static libraries for fastbootd
+FASTBOOTD_STATIC_LIBS := \
+    -lboot_control_client \
+    -lfs_mgr \
+    -lgsi \
+    -llp \
+    -lsnapshot_cow \
+    -llz4 \
+    -lzstd \
+    -lsnapshot_nobinder \
+    -lhealthhalutils \
+    -lhealthshim \
+    -lfastbootshim \
+    -luring \
+    -lziparchive \
+    -lsparse \
+    -lutils \
+    -llog \
+    -lbase \
+    -lcutils \
+    -lext2_uuid \
+    -lext4_utils \
+    -lselinux \
+    -lprotobuf-cpp-lite
+
+# Shared libraries for fastbootd
+FASTBOOTD_SHARED_LIBS := \
+    -landroid.hardware.boot@1.0 \
+    -landroid.hardware.boot@1.1 \
+    -landroid.hardware.boot-V1-ndk \
+    -landroid.hardware.fastboot@1.1 \
+    -landroid.hardware.fastboot-V1-ndk \
+    -landroid.hardware.health@2.0 \
+    -landroid.hardware.health-V4-ndk \
+    -lasyncio \
+    -lbase \
+    -lbinder_ndk \
+    -lbootloader_message \
+    -lhidlbase
+
+# VPATH for source file lookup
+VPATH := \
+    . \
+    device \
+    ../libsparse \
+    ../../extras/ext4_utils \
+    ../../../external/zlib/src \
+    ../../../external/libselinux/src \
+    ../libcutils \
+    ../libzipfile
+
+# Rules
+all: fastboot fastbootd
+
+# Rule to build fastboot executable
+fastboot: $(FASTBOOT_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS)
+	$(LD) -o $@ $(FASTBOOT_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) $(FASTBOOT_STATIC_LIBS) $(LDFLAGS)
+
+# Rule to build fastbootd executable
+fastbootd: $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS)
+	$(LD) -o $@ $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) $(FASTBOOTD_STATIC_LIBS) $(FASTBOOTD_SHARED_LIBS) $(LDFLAGS)
+
+# Compile C++ files for fastboot
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+
+# Compile C++ files for fastbootd
+$(FASTBOOTD_OBJS): %.o: %.cpp
+	$(CXX) $(FASTBOOTD_CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+
+# Compile C files
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+
+# Clean rule
+clean:
+	rm -rf $(FASTBOOT_OBJS) $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) fastboot fastbootd
+
+# Phony targets
+.PHONY: all clean

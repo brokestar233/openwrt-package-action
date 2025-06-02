@@ -47,7 +47,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install libopenssl
           make oldconfig V=s
-          make package/ipt2socks/compile V=s
+          make package/fastboot/compile V=s
 
       - name: Upload IPK
         uses: softprops/action-gh-release@v2

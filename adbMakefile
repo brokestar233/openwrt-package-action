@@ -12,38 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Compiler and linker settings
-TOOLCHAIN := /root/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-x86_64_gcc-14.3.0_musl/bin/x86_64-openwrt-linux-musl-
-CC := $(TOOLCHAIN)gcc
-CXX := $(TOOLCHAIN)g++
-LD := $(TOOLCHAIN)g++
-AR := $(TOOLCHAIN)ar
+# Define toolchain
+TOOLCHAIN ?= /root/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-x86_64_gcc-14.3.0_musl/bin/x86_64-openwrt-linux-musl-
+CC = $(TOOLCHAIN)gcc
+CXX = $(TOOLCHAIN)g++
+LD = $(TOOLCHAIN)g++
 
-# Compiler flags
-CFLAGS := -O2 -g -Wall -Wextra -Werror -Wunreachable-code -Wvla -DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_XOPEN_SOURCE
-CXXFLAGS := $(CFLAGS) -std=c++11 -Wthread-safety
-FASTBOOTD_CXXFLAGS := $(CXXFLAGS) -DFB_ENABLE_FETCH
-LDFLAGS := -lpthread -ldl -rdynamic -Wl,-rpath,.
+# Host OS detection
+HOST_OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 
-# Include directories
-INCLUDE_DIRS := \
-    -I. \
-    -I../include \
-    -I../mkbootimg \
-    -I../libsparse/include \
-    -I../../extras/ext4_utils \
-    -I../../../external/zlib \
-    -I../../../external/openssl/include \
-    -I../../../external/libselinux/include \
-    -I../../../external/libcxx/include \
-    -Iavb_headers \
-    -Ibootimg_headers \
-    -Ilibstorage_literals_headers \
-    -Ilibgtest_prod_headers \
-    -Isnapshot_headers
-
-# Source files for fastboot (combining libfastboot and fastboot sources)
-FASTBOOT_SRCS := \
+# Source files for libfastboot
+LIBFASTBOOT_SRCS := \
     bootimg_utils.cpp \
     fastboot_driver.cpp \
     fastboot.cpp \
@@ -56,224 +35,130 @@ FASTBOOT_SRCS := \
     udp.cpp \
     util.cpp \
     vendor_boot_img_utils.cpp \
-    task.cpp \
-    usb_linux.cpp \
-    main.cpp
+    task.cpp
 
-# Source files for fastbootd
-FASTBOOTD_SRCS := \
-    device/commands.cpp \
-    device/fastboot_device.cpp \
-    device/flashing.cpp \
-    device/main.cpp \
-    device/usb.cpp \
-    device/usb_iouring.cpp \
-    device/usb_client.cpp \
-    device/tcp_client.cpp \
-    device/utility.cpp \
-    device/variables.cpp \
-    socket.cpp
+# Platform-specific source files
+ifeq ($(HOST_OS),linux)
+    LIBFASTBOOT_SRCS += usb_linux.cpp
+endif
+ifeq ($(HOST_OS),darwin)
+    LIBFASTBOOT_SRCS += usb_osx.cpp
+endif
+ifeq ($(HOST_OS),windows)
+    LIBFASTBOOT_SRCS += usb_windows.cpp
+endif
 
-# Source files for zlib
-ZLIB_SRCS := \
-    ../../../external/zlib/src/adler32.c \
-    ../../../external/zlib/src/compress.c \
-    ../../../external/zlib/src/crc32.c \
-    ../../../external/zlib/src/deflate.c \
-    ../../../external/zlib/src/gzclose.c \
-    ../../../external/zlib/src/gzlib.c \
-    ../../../external/zlib/src/gzread.c \
-    ../../../external/zlib/src/gzwrite.c \
-    ../../../external/zlib/src/infback.c \
-    ../../../external/zlib/src/inflate.c \
-    ../../../external/zlib/src/inftrees.c \
-    ../../../external/zlib/src/inffast.c \
-    ../../../external/zlib/src/trees.c \
-    ../../../external/zlib/src/uncompr.c \
-    ../../../external/zlib/src/zutil.c
+# Source files for fastboot binary
+FASTBOOT_SRCS := main.cpp
 
-# Source files for libsparse
-LIBSPARSE_SRCS := \
-    ../libsparse/backed_block.c \
-    ../libsparse/output_file.c \
-    ../libsparse/sparse.c \
-    ../libsparse/sparse_crc32.c \
-    ../libsparse/sparse_err.c \
-    ../libsparse/sparse_read.c
+# Source files for fastboot_test
+FASTBOOT_TEST_SRCS := \
+    fastboot_driver_test.cpp \
+    fastboot_test.cpp \
+    socket_mock.cpp \
+    socket_test.cpp \
+    super_flash_helper_test.cpp \
+    task_test.cpp \
+    tcp_test.cpp \
+    udp_test.cpp
 
-# Source files for ext4_utils
-EXT4_UTILS_SRCS := \
-    ../../extras/ext4_utils/make_ext4fs.c \
-    ../../extras/ext4_utils/ext4fixup.c \
-    ../../extras/ext4_utils/ext4_utils.c \
-    ../../extras/ext4_utils/allocate.c \
-    ../../extras/ext4_utils/contents.c \
-    ../../extras/ext4_utils/extent.c \
-    ../../extras/ext4_utils/indirect.c \
-    ../../extras/ext4_utils/uuid.c \
-    ../../extras/ext4_utils/sha1.c \
-    ../../extras/ext4_utils/wipe.c \
-    ../../extras/ext4_utils/crc16.c
-
-# Source files for libselinux
-LIBSELINUX_SRCS := \
-    ../../../external/libselinux/src/booleans.c \
-    ../../../external/libselinux/src/canonicalize_context.c \
-    ../../../external/libselinux/src/disable.c \
-    ../../../external/libselinux/src/enabled.c \
-    ../../../external/libselinux/src/fgetfilecon.c \
-    ../../../external/libselinux/src/fsetfilecon.c \
-    ../../../external/libselinux/src/getenforce.c \
-    ../../../external/libselinux/src/getfilecon.c \
-    ../../../external/libotan/libselinux/src/getpeercon.c \
-    ../../../external/libselinux/src/lgetfilecon.c \
-    ../../../external/libselinux/src/load_policy.c \
-    ../../../external/libselinux/src/lsetfilecon.c \
-    ../../../external/libselinux/src/policyvers.c \
-    ../../../external/libselinux/src/procattr.c \
-    ../../../external/libselinux/src/setenforce.c \
-    ../../../external/libselinux/src/setfilecon.c \
-    ../../../external/libselinux/src/context.c \
-    ../../../external/libselinux/src/mapping.c \
-    ../../../external/libselinux/src/stringrep.c \
-    ../../../external/libselinux/src/compute_create.c \
-    ../../../external/libselinux/src/compute_av.c \
-    ../../../external/libselinux/src/avc.c \
-    ../../../external/libselinux/src/avc_internal.c \
-    ../../../external/libselinux/src/avc_sidtab.c \
-    ../../../external/libselinux/src/get_initial_context.c \
-    ../../../external/libselinux/src/checkAccess.c \
-    ../../../external/libselinux/src/sestatus.c \
-    ../../../external/libselinux/src/deny_unknown.c \
-    ../../../external/libselinux/src/callbacks.c \
-    ../../../external/libselinux/src/check_context.c \
-    ../../../external/libselinux/src/freecon.c \
-    ../../../external/libselinux/src/init.c \
-    ../../../external/libselinux/src/label.c \
-    ../../../external/libselinux/src/label_file.c \
-    ../../../external/libselinux/src/label_android_property.c
-
-# Source files for libcutils
-LIBCUTILS_SRCS := \
-    ../libcutils/list.c \
-    ../libcutils/socket_inaddr_any_server.c \
-    ../libcutils/socket_local_client.c \
-    ../libcutils/socket_local_server.c \
-    ../libcutils/socket_loopback_client.c \
-    ../libcutils/socket_loopback_server.c \
-    ../libcutils/socket_network_client.c \
-    ../libcutils/load_file.c
-
-# Source files for libziparchive
-LIBZIPARCHIVE_SRCS := \
-    ../libzipfile/centraldir.c \
-    ../libzipfile/zipfile.c
+# Source files for fastboot_vendor_boot_img_utils_test
+VENDOR_BOOT_TEST_SRCS := vendor_boot_img_utils_test.cpp
 
 # Object files
+LIBFASTBOOT_OBJS := $(LIBFASTBOOT_SRCS:.cpp=.o)
 FASTBOOT_OBJS := $(FASTBOOT_SRCS:.cpp=.o)
-FASTBOOTD_OBJS := $(FASTBOOTD_SRCS:.cpp=.o)
-ZLIB_OBJS := $(ZLIB_SRCS:.c=.o)
-LIBSPARSE_OBJS := $(LIBSPARSE_SRCS:.c=.o)
-EXT4_UTILS_OBJS := $(EXT4_UTILS_SRCS:.c=.o)
-LIBSELINUX_OBJS := $(LIBSELINUX_SRCS:.c=.o)
-LIBCUTILS_OBJS := $(LIBCUTILS_SRCS:.c=.o)
-LIBZIPARCHIVE_OBJS := $(LIBZIPARCHIVE_SRCS:.c=.o)
+FASTBOOT_TEST_OBJS := $(FASTBOOT_TEST_SRCS:.cpp=.o)
+VENDOR_BOOT_TEST_OBJS := $(VENDOR_BOOT_TEST_SRCS:.cpp=.o)
 
-# Static libraries for fastboot
-FASTBOOT_STATIC_LIBS := \
-    -lziparchive \
-    -lsparse \
-    -lutils \
-    -llog \
-    -llz4 \
-    -lz \
-    -ldiagnose_usb \
-    -lbase \
-    -lcutils \
-    -lgtest_host \
-    -llp \
-    -lcrypto \
-    -lbuildversion \
-    -lext4_utils \
-    -lselinux
+# Compiler flags
+CFLAGS := -O2 -g -Wall -Wextra -Werror -Wunreachable-code -DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION -D_FILE_OFFSET_BITS=64
+CXXFLAGS := $(CFLAGS) -std=c++11
+ifeq ($(HOST_OS),darwin)
+    CFLAGS += -Wno-unused-parameter
+endif
 
-# Static libraries for fastbootd
-FASTBOOTD_STATIC_LIBS := \
-    -lboot_control_client \
-    -lfs_mgr \
-    -lgsi \
-    -llp \
-    -lsnapshot_cow \
-    -llz4 \
-    -lzstd \
-    -lsnapshot_nobinder \
-    -lhealthhalutils \
-    -lhealthshim \
-    -lfastbootshim \
-    -luring \
-    -lziparchive \
-    -lsparse \
-    -lutils \
-    -llog \
-    -lbase \
-    -lcutils \
-    -lext2_uuid \
-    -lext4_utils \
-    -lselinux \
-    -lprotobuf-cpp-lite
-
-# Shared libraries for fastbootd
-FASTBOOTD_SHARED_LIBS := \
-    -landroid.hardware.boot@1.0 \
-    -landroid.hardware.boot@1.1 \
-    -landroid.hardware.boot-V1-ndk \
-    -landroid.hardware.fastboot@1.1 \
-    -landroid.hardware.fastboot-V1-ndk \
-    -landroid.hardware.health@2.0 \
-    -landroid.hardware.health-V4-ndk \
-    -lasyncio \
-    -lbase \
-    -lbinder_ndk \
-    -lbootloader_message \
-    -lhidlbase
-
-# VPATH for source file lookup
-VPATH := \
+# Include directories
+INCLUDE_DIRS := \
     . \
-    device \
-    ../libsparse \
+    include \
+    ../libsparse/include \
     ../../extras/ext4_utils \
-    ../../../external/zlib/src \
-    ../../../external/libselinux/src \
-    ../libcutils \
-    ../libzipfile
+    ../../../external/zlib \
+    ../../../external/openssl/include \
+    ../../../external/libselinux/include \
+    avb_headers \
+    bootimg_headers \
+    libstorage_literals_headers
 
-# Rules
-all: fastboot fastbootd
+# Convert include directories to -I flags
+CPPFLAGS += $(addprefix -I, $(INCLUDE_DIRS))
 
-# Rule to build fastboot executable
-fastboot: $(FASTBOOT_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS)
-	$(LD) -o $@ $(FASTBOOT_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) $(FASTBOOT_STATIC_LIBS) $(LDFLAGS)
+# Static libraries
+STATIC_LIBS := \
+    libziparchive \
+    libsparse \
+    libutils \
+    liblog \
+    liblz4 \
+    libz \
+    libdiagnose_usb \
+    libbase \
+    libcutils \
+    liblp \
+    libcrypto \
+    libbuildversion
 
-# Rule to build fastbootd executable
-fastbootd: $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS)
-	$(LD) -o $@ $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) $(FASTBOOTD_STATIC_LIBS) $(FASTBOOTD_SHARED_LIBS) $(LDFLAGS)
+ifeq ($(HOST_OS),linux)
+    STATIC_LIBS += libext4_utils
+endif
 
-# Compile C++ files for fastboot
+# Platform-specific linker flags
+ifeq ($(HOST_OS),linux)
+    LDFLAGS := -ldl -rdynamic -Wl,-rpath,.
+endif
+ifeq ($(HOST_OS),darwin)
+    LDFLAGS := -lpthread -framework CoreFoundation -framework IOKit
+endif
+ifeq ($(HOST_OS),windows)
+    LDFLAGS := -lws2_32
+    STATIC_LIBS += AdbWinApi
+    INCLUDE_DIRS += development/host/windows/usb/api
+endif
+
+# Linker libraries
+LIBS := $(addprefix -l, $(STATIC_LIBS))
+
+# Targets
+all: fastboot libfastboot.a fastboot_test fastboot_vendor_boot_img_utils_test
+
+# Build libfastboot static library
+libfastboot.a: $(LIBFASTBOOT_OBJS)
+	$(AR) rcs $@ $^
+
+# Build fastboot binary
+fastboot: $(FASTBOOT_OBJS) libfastboot.a
+	$(LD) -o $@ $(FASTBOOT_OBJS) libfastboot.a $(LDFLAGS) $(LIBS)
+
+# Build fastboot_test
+fastboot_test: $(FASTBOOT_TEST_OBJS) libfastboot.a
+	$(LD) -o $@ $(FASTBOOT_TEST_OBJS) libfastboot.a -lgmock $(LDFLAGS) $(LIBS)
+
+# Build fastboot_vendor_boot_img_utils_test
+fastboot_vendor_boot_img_utils_test: $(VENDOR_BOOT_TEST_OBJS) libfastboot.a
+	$(LD) -o $@ $(VENDOR_BOOT_TEST_OBJS) libfastboot.a -lgmock -lbase -llog $(LDFLAGS) $(LIBS)
+
+# Compile C++ source files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
-# Compile C++ files for fastbootd
-$(FASTBOOTD_OBJS): %.o: %.cpp
-	$(CXX) $(FASTBOOTD_CXXFLAGS) $(INCLUDE_DIRS) -c $< -o $@
-
-# Compile C files
-%.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -c $< -o $@
-
-# Clean rule
+# Clean
 clean:
-	rm -rf $(FASTBOOT_OBJS) $(FASTBOOTD_OBJS) $(ZLIB_OBJS) $(LIBSPARSE_OBJS) $(EXT4_UTILS_OBJS) $(LIBSELINUX_OBJS) $(LIBCUTILS_OBJS) $(LIBZIPARCHIVE_OBJS) fastboot fastbootd
+	rm -f $(LIBFASTBOOT_OBJS) $(FASTBOOT_OBJS) $(FASTBOOT_TEST_OBJS) $(VENDOR_BOOT_TEST_OBJS) libfastboot.a fastboot fastboot_test fastboot_vendor_boot_img_utils_test
+
+# Dist files
+dist: fastboot
+	cp fastboot $(DIST_DIR)/
 
 # Phony targets
-.PHONY: all clean
+.PHONY: all clean dist

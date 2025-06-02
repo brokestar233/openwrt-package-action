@@ -56,9 +56,9 @@ jobs:
           wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
           tar -xvf openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
           cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
-          mkdir package/fastboot
-          cp -r ../adbMakefile package/fastboot
-          cp -r ../Makefile package/fastboot
+          #mkdir package/fastboot
+          #cp -r ../adbMakefile package/fastboot
+          #cp -r ../Makefile package/fastboot
           cp -r ../.config package/
 
       - name: build

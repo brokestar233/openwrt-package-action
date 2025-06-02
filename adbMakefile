@@ -110,5 +110,5 @@ LD= $(TOOLCHAIN)gcc
 OBJS= $(SRCS:.c=.o) 
 all: fastboot 
 fastboot: $(OBJS)
- 	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS) 
-clean: 	rm -rf $(OBJS)
+	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS) 
+clean:  rm -rf $(OBJS)

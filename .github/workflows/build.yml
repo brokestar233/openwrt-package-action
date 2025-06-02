@@ -66,6 +66,7 @@ jobs:
           cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
           ./scripts/feeds update -a
           ./scripts/feeds install libopenssl
+          ./staging_dir/host/bin/usign -G -s ./key-build -p ./key-build.pub -c "Local build key"
           make oldconfig V=s
           make V=s
 

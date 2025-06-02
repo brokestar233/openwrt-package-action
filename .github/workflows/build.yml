@@ -75,5 +75,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.TAG_NAME }}
+          tag_name: 1
           files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/*.ipk

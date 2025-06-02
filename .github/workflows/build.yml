@@ -36,7 +36,7 @@ jobs:
 
       - name: Set up ccache
         run: |
-          mkdir -p ~/.cache/bazel # Ensure the directory exists
+          mkdir -p ~/.cache # Ensure the directory exists
           ccache --version
           ccache --max-size=2G
           ccache --set-config=compression=true
@@ -67,8 +67,8 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install libopenssl
           ./staging_dir/host/bin/usign -G -s ./key-build -p ./key-build.pub -c "Local build key"
-          make oldconfig V=s
-          make V=s
+          make oldconfig V=s CC="ccache gcc" CXX="ccache g++"
+          make V=s CC="ccache gcc" CXX="ccache g++"
 
       - name: Upload APK
         uses: softprops/action-gh-release@v2
@@ -76,4 +76,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: 1
-          files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/*.ipk
+          files: openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64/bin/targets/x86/64/packages

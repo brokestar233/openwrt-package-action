@@ -46,7 +46,7 @@ jobs:
           cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
           ./scripts/feeds update -a
           ./scripts/feeds install libopenssl
-          make V=s
+          make package/ipt2socks/compile V=s
 
       - name: Upload IPK
         uses: softprops/action-gh-release@v2

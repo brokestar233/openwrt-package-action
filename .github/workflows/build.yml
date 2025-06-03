@@ -72,6 +72,7 @@ jobs:
           #make V=s CC="ccache gcc" CXX="ccache g++"
           #zip -r IPK.zip bin/targets/x86/64/packages/
           cd android-tools
+          git submodule update --init --recursive
           make
           zip -r 1.zip .
 

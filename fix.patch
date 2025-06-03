@@ -1,0 +1,44 @@
+--- a/core/adb/types.h
++++ b/core/adb/types.h
+@@ -X,6 +X,7 @@ class IOVector {
+   // ... 其他成员
+
+  private:
++  size_type chain_length_ = 0;
+   size_type begin_offset_ = 0;
+   size_type end_offset_ = 0;
+   std::deque<block_type> chain_;
+@@ -Y,7 +Y,8 @@ inline IOVector::IOVector(IOVector&& move)
+     : begin_offset_(move.begin_offset_),
+       end_offset_(move.end_offset_),
+-      chain_(std::move(move.chain_)) {
++      chain_(std::move(move.chain_)),
++      chain_length_(move.chain_length_) {
+   move.begin_offset_ = 0;
+   move.end_offset_ = 0;
++  move.chain_length_ = 0;
+   move.chain_.clear();
+ }
+@@ -Z,6 +Z,7 @@ inline IOVector& IOVector::operator=(IOVector&& move) {
+     end_offset_ = move.end_offset_;
+     chain_ = std::move(move.chain_);
++    chain_length_ = move.chain_length_;
+ 
+     move.begin_offset_ = 0;
+     move.end_offset_ = 0;
++    move.chain_length_ = 0;
+     move.chain_.clear();
+@@ -A,7 +B,12 @@ class IOVector {
+ 
+ template <typename FunctionType>
+-auto IOVector::for_each_block(FunctionType&& f) const
+-        -> typename std::result_of<FunctionType(const char*, size_t)>::type {
++auto IOVector::for_each_block(FunctionType&& f) const ->
++#if __cplusplus >= 201703L
++    std::invoke_result_t<FunctionType, const char*, size_t>
++#else
++    typename std::result_of<FunctionType(const char*, size_t)>::type
++#endif
++{
+   if (chain_length_ == 0) {
+     return;

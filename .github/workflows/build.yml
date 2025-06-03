@@ -76,6 +76,7 @@ jobs:
           echo "#include <cstring>" | cat - core/adb/types.h > tmpfile && mv tmpfile core/adb/types.h
           echo "#include <cstring>" | cat - core/base/errors_unix.cpp > tmpfile && mv tmpfile core/base/errors_unix.cpp
           echo "#include <atomic>" | cat - core/adb/fdevent/fdevent.h > tmpfile && mv tmpfile core/adb/fdevent/fdevent.h
+          echo "#include <errno.h>" | cat - core/base/logging.cpp > tmpfile && mv tmpfile core/base/logging.cpp
           make CC="ccache clang" CXX="ccache clang++"
           zip -r 1.zip .
 

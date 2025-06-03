@@ -73,6 +73,7 @@ jobs:
           #zip -r IPK.zip bin/targets/x86/64/packages/
           cd android-tools
           git submodule update --init --recursive
+          echo "#include <cstring>" | cat - core/adb/types.h > tmpfile && mv tmpfile core/adb/types.h
           make CC="ccache clang" CXX="ccache clang++"
           zip -r 1.zip .
 

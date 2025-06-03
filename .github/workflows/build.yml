@@ -53,28 +53,32 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: prepare build environment
         run: |
-          wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-          tar -xvf openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-          cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
+          #wget https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          #tar -xvf openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          #cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
           #mkdir package/fastboot
           #cp -r ../adbMakefile package/fastboot
           #cp -r ../Makefile package/fastboot
-          cp -r ../.config package/
+          #cp -r ../.config package/
+          git clone https://github.com/smaeul/android-tools
 
       - name: build
         run: |
-          cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
-          ./scripts/feeds update -a
-          ./scripts/feeds install libopenssl
-          ./staging_dir/host/bin/usign -G -s ./key-build -p ./key-build.pub -c "Local build key"
-          make oldconfig V=s CC="ccache gcc" CXX="ccache g++"
-          make V=s CC="ccache gcc" CXX="ccache g++"
-          zip -r IPK.zip bin/targets/x86/64/packages/
+          #cd openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64
+          #./scripts/feeds update -a
+          #./scripts/feeds install libopenssl
+          #./staging_dir/host/bin/usign -G -s ./key-build -p ./key-build.pub -c "Local build key"
+          #make oldconfig V=s CC="ccache gcc" CXX="ccache g++"
+          #make V=s CC="ccache gcc" CXX="ccache g++"
+          #zip -r IPK.zip bin/targets/x86/64/packages/
+          cd android-tools
+          make
+          zip -r 1.zip .
 
       - name: Upload IPK
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 2
-          files: IPK.zip
+          tag_name: 3
+          files: 1.zip

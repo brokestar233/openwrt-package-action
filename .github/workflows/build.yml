@@ -76,7 +76,9 @@ jobs:
           echo "#include <cstring>" | cat - core/adb/types.h > tmpfile && mv tmpfile core/adb/types.h
           echo "#include <cstring>" | cat - core/base/errors_unix.cpp > tmpfile && mv tmpfile core/base/errors_unix.cpp
           echo "#include <atomic>" | cat - core/adb/fdevent/fdevent.h > tmpfile && mv tmpfile core/adb/fdevent/fdevent.h
-          make CC="ccache clang" CXX="ccache clang++"
+          export TARGET="x86_64-linux-musl"
+          export LDLIBS="-lstdc++ -lm -lc -lpthread"
+          make CC="ccache clang" CXX="ccache clang++" CFLAGS+="--target=$TARGET -specs /usr/lib/$TARGET/musl-gcc.specs -static" CXXFLAGS+="--target=$TARGET -specs /usr/lib/$TARGET/musl-gcc.specs -static" LDFLAGS+="--target=$TARGET -static -fuse-ld=lld"
           zip -r 1.zip .
 
       - name: Upload IPK

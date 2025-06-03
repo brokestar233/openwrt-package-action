@@ -73,9 +73,7 @@ jobs:
           #zip -r IPK.zip bin/targets/x86/64/packages/
           cd android-tools
           git submodule update --init --recursive
-          cp ../fix.patch ./
-          patch -p1 -F 3 < fix.patch
-          make
+          make CC="ccache clang" CXX="ccache clang++"
           zip -r 1.zip .
 
       - name: Upload IPK

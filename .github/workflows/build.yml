@@ -74,6 +74,7 @@ jobs:
           cd android-tools
           git submodule update --init --recursive
           echo "#include <cstring>" | cat - core/adb/types.h > tmpfile && mv tmpfile core/adb/types.h
+          echo "#include <atomic>" | cat - core/adb/fdevent/fdevent.h > tmpfile && mv tmpfile core/adb/fdevent/fdevent.h
           make CC="ccache clang" CXX="ccache clang++"
           zip -r 1.zip .
 
